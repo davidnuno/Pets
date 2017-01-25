@@ -1,5 +1,6 @@
 package com.example.android.pets;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,6 +14,13 @@ import android.widget.TextView;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 import com.example.android.pets.data.PetDbHelper;
+
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_BREED;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_GENDER;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_NAME;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_WEIGHT;
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
+import static com.example.android.pets.data.PetContract.PetEntry.TABLE_NAME;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -65,7 +73,19 @@ public class CatalogActivity extends AppCompatActivity {
     }// END OF displayDatabaseInfo METHOD
 
     private void insertPet() {
-        
+
+        PetDbHelper dbHelper = new PetDbHelper(this);
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(COLUMN_PET_NAME, "Jerry");
+        values.put(COLUMN_PET_BREED, "Chihuahua");
+        values.put(COLUMN_PET_GENDER, GENDER_MALE);
+        values.put(COLUMN_PET_WEIGHT, 10);
+
+        long newRowId = db.insert(TABLE_NAME, null, values);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,6 +102,7 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertPet();
+                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:

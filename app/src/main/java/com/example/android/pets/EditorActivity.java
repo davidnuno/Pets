@@ -15,10 +15,14 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,15 +30,25 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.example.android.pets.data.PetDbHelper;
+
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_BREED;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_GENDER;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_NAME;
+import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_WEIGHT;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
+import static com.example.android.pets.data.PetContract.PetEntry.TABLE_NAME;
 
 /**
  * Allows user to create a new pet or edit an existing one.
  */
 public class EditorActivity extends AppCompatActivity {
+
+    private final static String CATALOG_ACTIVITY = "CatalogActivity";
 
     /** EditText field to enter the pet's name */
     private EditText mNameEditText;
@@ -102,9 +116,39 @@ public class EditorActivity extends AppCompatActivity {
             // Because AdapterView is an abstract class, onNothingSelected must be defined
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+
                 mGender = 0; // Unknown
             }
         });
+    }
+
+    private void insertPet() {
+
+        PetDbHelper dbHelper = new PetDbHelper(this);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        String petName = mNameEditText.getText().toString().trim();
+        String petBreed = mBreedEditText.getText().toString().trim();
+        String petWeightString = mWeightEditText.getText().toString().trim();
+
+        int petWeight = Integer.parseInt(petWeightString);
+
+        ContentValues values = new ContentValues();
+
+        values.put(COLUMN_PET_NAME, petName);
+        values.put(COLUMN_PET_BREED, petBreed);
+        values.put(COLUMN_PET_WEIGHT, petWeight);
+        values.put(COLUMN_PET_GENDER, mGender);
+
+        long newRowId = db.insert(TABLE_NAME, null, values);
+
+        if (newRowId == -1) {
+            Toast.makeText(this, "Error with saving pet", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Pet saved with with row id: " + newRowId, Toast.LENGTH_SHORT).show();
+        }
+
+        Log.v(CATALOG_ACTIVITY, "Inserting data into db");
     }
 
     @Override
@@ -121,7 +165,9 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                //Save the pet to database
+                insertPet();
+                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:

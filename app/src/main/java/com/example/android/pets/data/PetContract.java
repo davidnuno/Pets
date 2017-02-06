@@ -15,8 +15,6 @@ public final class PetContract {
 
     public static final String PATH_PETS = "pets";
 
-    public static final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_PETS);
-
     // To prevent someone from accidentally instantiating the contract class,
     // give it an empty constructor.
     PetContract() {}
@@ -29,6 +27,11 @@ public final class PetContract {
 
         /** Name of database table for pets */
         public final static String TABLE_NAME = "pets";
+
+        /**
+         * The content URI to access the pet data in the provider.
+         */
+        public static final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_PETS);
 
         /**
          * Unique ID number for the pet (only for use in the database table).
@@ -74,5 +77,13 @@ public final class PetContract {
         public static final int GENDER_UNKNOWN = 0;
         public static final int GENDER_MALE = 1;
         public static final int GENDER_FEMALE = 2;
+
+        /**
+         * Returns whether or not the given gender is {@link #GENDER_UNKNOWN}, {@link #GENDER_MALE},
+         * or {@link #GENDER_FEMALE}.
+         */
+        public static boolean isValidGender(int gender) {
+            return gender == GENDER_UNKNOWN || gender == GENDER_MALE || gender == GENDER_FEMALE;
+        }
     }
 }

@@ -10,8 +10,6 @@ import android.widget.TextView;
 
 import com.example.android.pets.data.PetContract;
 
-import static android.R.attr.name;
-
 /**
  * {@link PetCursorAdapter} is an adapter for a list or grid view
  * that uses a {@link Cursor} of pet data as its data source. This adapter knows

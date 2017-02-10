@@ -17,41 +17,45 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.app.LoaderManager;
 
 import com.example.android.pets.data.PetContract;
-import com.example.android.pets.data.PetDbHelper;
-
-import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_BREED;
-import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_GENDER;
-import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_NAME;
-import static com.example.android.pets.data.PetContract.PetEntry.COLUMN_PET_WEIGHT;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
 import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
-import static com.example.android.pets.data.PetContract.PetEntry.TABLE_NAME;
 
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private final static String CATALOG_ACTIVITY = "CatalogActivity";
-
+    private final static String CATALOG_ACTIVITY = CatalogActivity.class.getSimpleName();
+    /**
+     * Identifier for the existing pet data
+     */
+    private static final int EXISTING_PET_LOADER = 0;
+    /**
+     * Content URI for the existing pet (null if it's a new pet)
+     */
+    private Uri mCurrentPetUri;
     /** EditText field to enter the pet's name */
     private EditText mNameEditText;
 
@@ -74,6 +78,20 @@ public class EditorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
+
+
+        Intent intent = getIntent();
+        Uri currentPetUri = intent.getData();
+
+        if (currentPetUri == null) {
+
+            setTitle("Add a Pet");
+        } else {
+
+            setTitle(R.string.editor_activity_title_edit_pet);
+        }
+
+        getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
 
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
@@ -187,5 +205,124 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Instantiate and return a new Loader for the given ID.
+     *
+     * @param i      The ID whose loader is to be created.
+     * @param bundle Any arguments supplied by the caller.
+     * @return Return a new Loader instance that is ready to start loading.
+     */
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        // Since the editor shows all pet attributes, define a projection that contains
+        // all columns from the pet table
+        String[] projection = {
+                PetContract.PetEntry._ID,
+                PetContract.PetEntry.COLUMN_PET_NAME,
+                PetContract.PetEntry.COLUMN_PET_BREED,
+                PetContract.PetEntry.COLUMN_PET_GENDER,
+                PetContract.PetEntry.COLUMN_PET_WEIGHT};
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                mCurrentPetUri,         // Query the content URI for the current pet
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
+    }
+
+    /**
+     * Called when a previously created loader has finished its load.  Note
+     * that normally an application is <em>not</em> allowed to commit fragment
+     * transactions while in this call, since it can happen after an
+     * activity's state is saved.  See  for further discussion on this.
+     * <p>
+     * <p>This function is guaranteed to be called prior to the release of
+     * the last data that was supplied for this Loader.  At this point
+     * you should remove all use of the old data (since it will be released
+     * soon), but should not do your own release of the data since its Loader
+     * owns it and will take care of that.  The Loader will take care of
+     * management of its data so you don't have to.  In particular:
+     * <p>
+     * <ul>
+     * <li> <p>The Loader will monitor for changes to the data, and report
+     * them to you through new calls here.  You should not monitor the
+     * data yourself.  For example, if the data is a {@link Cursor}
+     * and you place it in a {@link CursorAdapter}, use
+     * the {@link CursorAdapter#CursorAdapter(Context,
+     * Cursor, int)} constructor <em>without</em> passing
+     * in either {@link CursorAdapter#FLAG_AUTO_REQUERY}
+     * or {@link CursorAdapter#FLAG_REGISTER_CONTENT_OBSERVER}
+     * (that is, use 0 for the flags argument).  This prevents the CursorAdapter
+     * from doing its own observing of the Cursor, which is not needed since
+     * when a change happens you will get a new Cursor throw another call
+     * here.
+     * <li> The Loader will release the data once it knows the application
+     * is no longer using it.  For example, if the data is
+     * a {@link Cursor} from a {@link CursorLoader},
+     * you should not call close() on it yourself.  If the Cursor is being placed in a
+     * {@link CursorAdapter}, you should use the
+     * {@link CursorAdapter#swapCursor(Cursor)}
+     * method so that the old Cursor is not closed.
+     * </ul>
+     *
+     * @param loader The Loader that has finished.
+     * @param data   The data generated by the Loader.
+     */
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        //Bail early if the cursor is null or there is less than 1 row in the cursor
+        if (data == null || data.getCount() < 1) {
+            return;
+        }
+
+        if (data.moveToFirst()) {
+            int nameColumnIndex = data.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME);
+            int breedColumnIndex = data.getColumnIndex(PetContract.PetEntry.COLUMN_PET_BREED);
+            int genderColumnIndex = data.getColumnIndex(PetContract.PetEntry.COLUMN_PET_GENDER);
+            int weightColumnIndex = data.getColumnIndex(PetContract.PetEntry.COLUMN_PET_WEIGHT);
+
+            //Extract out the value from the Cursor for the given index
+            String name = data.getString(nameColumnIndex);
+            String breed = data.getString(breedColumnIndex);
+            int gender = data.getInt(genderColumnIndex);
+            int weight = data.getInt(weightColumnIndex);
+
+            //Update the views on the screen with the values from the database.
+            mNameEditText.setText(name);
+            mBreedEditText.setText(breed);
+            mWeightEditText.setText(Integer.toString(weight));
+
+            switch (gender) {
+                case PetContract.PetEntry.GENDER_MALE:
+                    mGenderSpinner.setSelection(1);
+                    break;
+                case PetContract.PetEntry.GENDER_FEMALE:
+                    mGenderSpinner.setSelection(2);
+                    break;
+                default:
+                    mGenderSpinner.setSelection(0);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Called when a previously created loader is being reset, and thus
+     * making its data unavailable.  The application should at this point
+     * remove any references it has to the Loader's data.
+     *
+     * @param loader The Loader that is being reset.
+     */
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+        mNameEditText.setText("");
+        mBreedEditText.setText("");
+        mWeightEditText.setText("");
+        mGenderSpinner.setSelection(0); //Select "Unknown" gender
     }
 }

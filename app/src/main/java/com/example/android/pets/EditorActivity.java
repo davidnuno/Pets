@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +48,7 @@ import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
  */
 public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private final static String CATALOG_ACTIVITY = CatalogActivity.class.getSimpleName();
+    private final static String LOG_TAG = CatalogActivity.class.getSimpleName();
     /**
      * Identifier for the existing pet data
      */
@@ -79,19 +80,21 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-
+        Log.v(LOG_TAG, "Creating intent");
         Intent intent = getIntent();
-        Uri currentPetUri = intent.getData();
+        mCurrentPetUri = intent.getData();
 
-        if (currentPetUri == null) {
+        if (mCurrentPetUri == null) {
 
-            setTitle("Add a Pet");
+            setTitle(R.string.editor_activity_title_new_pet);
         } else {
 
             setTitle(R.string.editor_activity_title_edit_pet);
-        }
 
-        getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
+            // Initialize a loader to read the pet data from the database
+            // and display the current values in the editor
+            getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
+        }
 
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);

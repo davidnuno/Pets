@@ -61,6 +61,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+                Log.v(LOG_TAG, "Starting EditorActivity.");
                 startActivity(intent);
             }
         });

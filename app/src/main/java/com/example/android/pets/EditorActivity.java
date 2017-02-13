@@ -136,6 +136,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         setupSpinner();
     }
 
+    /**
+     * Handle when the back button is pressed and check if there are changes.
+     */
     @Override
     public void onBackPressed() {
         // If the pet hasn't changed, continue with handling back button press

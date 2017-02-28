@@ -62,7 +62,7 @@ public class PetCursorAdapter extends CursorAdapter {
         int nameColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME);
         int breedColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_BREED);
 
-        String petName = cursor.getString(nameColumnIndex);
+        String petName  = cursor.getString(nameColumnIndex);
         String petBreed = cursor.getString(breedColumnIndex);
 
         // If the pet breed is empty string or null, then use some default text

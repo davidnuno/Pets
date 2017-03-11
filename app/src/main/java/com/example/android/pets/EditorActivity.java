@@ -25,7 +25,6 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.UserDictionary;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -54,9 +53,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private final static String LOG_TAG = CatalogActivity.class.getSimpleName();
 
-    /**
-     * Identifier for the existing pet data
-     */
+    /** Identifier for the existing pet data */
     private static final int EXISTING_PET_LOADER = 0;
 
     /** Content URI for the existing pet (null if it's a new pet) */

@@ -106,8 +106,6 @@ public class PetProvider extends ContentProvider {
                 // arguments that will fill in the "?". Since we have 1 question mark in the
                 // selection, we have 1 String in the selection arguments' String array.
                 selection = PetEntry._ID + "=?";
-                Log.e(LOG_TAG, "THIS IS WHAT'S CAUSING ERROR: " + uri.toString());
-                //selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri)) };
 
                 // This will perform a query on the pets table where the _id equals 3 to return a
